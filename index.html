@@ -182,10 +182,6 @@ html[data-theme="dark"]{
   --ring-glow:drop-shadow(0 0 8px rgba(109,181,166,0.55));
 }
 
-@media (prefers-reduced-motion: reduce){
-  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
-}
-
 *,*::before,*::after{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
@@ -280,8 +276,19 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 }
 .nav-item svg{ width:18px; height:18px; flex-shrink:0; opacity:0.85; }
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
+.nav-item{ position:relative; }
 .nav-item.active{ background:var(--celadon-pale); color:var(--celadon-deep); font-weight:600; }
 .nav-item.active svg{ opacity:1; }
+/* A seal-ink marker on the active row: the one place the app's third
+   colour appears in the chrome, so "where am I" reads instantly. */
+.nav-item.active::before{
+  content:''; position:absolute; left:-16px; top:50%;
+  width:3px; height:19px; margin-top:-9.5px;
+  border-radius:0 3px 3px 0; background:var(--celadon);
+}
+.sidebar{ transition:background var(--t-mid) var(--ease), border-color var(--t-mid) var(--ease); }
+.brand-mark{ box-shadow:var(--shadow-sm); transition:transform var(--t-mid) var(--ease-spring); }
+.brand:hover .brand-mark{ transform:rotate(-4deg) scale(1.04); }
 .nav-group-label{
   font-size:10px; text-transform:uppercase; letter-spacing:0.09em; color:var(--ink-faint);
   font-weight:700; padding:14px 12px 5px; list-style:none;
@@ -314,21 +321,24 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .btn{
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
   padding:10px 18px; border-radius:var(--radius-sm); border:1px solid transparent;
-  font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s ease;
-  white-space:nowrap;
+  font-size:14px; font-weight:600; cursor:pointer;
+  white-space:nowrap; position:relative;
+  transition:background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+             color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
+             box-shadow var(--t-fast) var(--ease);
 }
 .btn-primary{ background:var(--ink); color:var(--surface); }
-.btn-primary:hover{ background:var(--ink-2); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+.btn-primary:hover{ background:var(--ink-2); transform:translateY(-1px); box-shadow:var(--shadow-md); }
 .btn-celadon{ background:var(--celadon); color:var(--on-celadon); }
-.btn-celadon:hover{ background:var(--celadon-deep); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+.btn-celadon:hover{ background:var(--celadon-deep); transform:translateY(-1px); box-shadow:var(--shadow-md); }
 .btn-outline{ background:var(--surface); color:var(--ink); border-color:var(--border); }
-.btn-outline:hover{ border-color:var(--ink-faint); background:var(--surface-2); }
+.btn-outline:hover{ border-color:var(--celadon); background:var(--celadon-pale); color:var(--celadon-deep); transform:translateY(-1px); }
 .btn-seal{ background:var(--seal); color:var(--on-seal); }
-.btn-seal:hover{ background:var(--seal-deep); }
+.btn-seal:hover{ background:var(--seal-deep); transform:translateY(-1px); box-shadow:var(--shadow-md); }
 .btn-ghost{ background:transparent; color:var(--ink-soft); border:none; }
 .btn-ghost:hover{ color:var(--ink); background:var(--surface-2); }
 .btn-sm{ padding:6px 12px; font-size:12.5px; border-radius:6px;}
-.btn:disabled{ opacity:0.45; cursor:not-allowed; transform:none !important; }
+.btn:disabled{ opacity:0.45; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
 .btn-block{ width:100%; }
 
 .card{
@@ -336,6 +346,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   box-shadow:var(--shadow-sm);
 }
 .card-pad{ padding:22px; }
+/* Only cards that actually do something on click get the lift, so hover
+   stops promising interactivity that is not there. */
+.card[data-action]{ cursor:pointer; }
+.card[data-action]:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--border); }
 
 .tag{
   display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700;
@@ -347,7 +361,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .tag-neutral{ background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--border-soft); }
 
 .progress-track{ height:8px; border-radius:6px; background:var(--border-soft); overflow:hidden; }
-.progress-fill{ height:100%; border-radius:6px; background:var(--celadon); transition:width 0.6s cubic-bezier(.4,0,.2,1); }
+.progress-fill{
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg, var(--celadon-deep), var(--celadon-bright));
+  transition:width 0.6s var(--ease-out);
+}
 .progress-fill.seal{ background:var(--seal); }
 .progress-fill.gold{ background:var(--gold); }
 
@@ -358,8 +376,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .grid-5{ grid-template-columns:repeat(5,1fr); }
 .grid-6{ grid-template-columns:repeat(6,1fr); }
 
-.fade-in{ animation:fadeIn 0.35s cubic-bezier(.2,0,.2,1) both; }
-@keyframes fadeIn{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+.fade-in{ animation:fadeIn 0.34s var(--ease-out) both; }
+/* Opacity + a filter blur only: animating transform here would drag the
+   video player's slot out from under it mid-animation. */
+@keyframes fadeIn{ from{ opacity:0; filter:blur(3px); } to{ opacity:1; filter:blur(0); } }
 @keyframes popIn{ 0%{ transform:scale(0.85); opacity:0;} 70%{ transform:scale(1.04);} 100%{ transform:scale(1); opacity:1;} }
 @keyframes flameFlicker{ 0%,100%{ transform:scale(1) rotate(0deg);} 50%{ transform:scale(1.08) rotate(-2deg);} }
 
@@ -369,9 +389,15 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    Hangul syllable is literally constructed from its parts.
    ============================================================ */
 .hero-card{
-  background:var(--hero-bg); color:var(--hero-text); border-radius:var(--radius-lg);
+  background:
+    radial-gradient(660px 300px at 88% -30%, color-mix(in srgb, var(--celadon) 32%, transparent), transparent 70%),
+    var(--hero-bg);
+  color:var(--hero-text); border-radius:var(--radius-lg);
   padding:26px 28px; position:relative; overflow:hidden; margin-bottom:22px;
 }
+/* No watermark glyph here: the stat cells below are translucent, so
+   anything drawn behind them shows through as banding. The radial wash
+   above carries the depth on its own. */
 .hero-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; position:relative; z-index:1;}
 .hero-greet{ font-size:22px; font-family:var(--font-display); }
 .hero-greet .kr{ font-family:var(--font-kr); }
@@ -585,19 +611,32 @@ svg.check-icon{ width:20px;height:20px; color:var(--celadon); flex-shrink:0; }
 /* ============================================================
    TYPING PRACTICE, 2-beolsik keyboard visual
    ============================================================ */
-.kb{ display:flex; flex-direction:column; gap:6px; align-items:center; }
-.kb-row{ display:flex; gap:6px; }
-.kb-key{
-  width:52px; height:56px; border-radius:8px; background:var(--surface); border:1px solid var(--border);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; position:relative;
-  box-shadow:0 2px 0 var(--border);
+/* The reference keyboard is sized from one variable so it can shrink to a
+   phone instead of pushing the page sideways. The staggered row offsets
+   scale with it, and a scroll container catches whatever is still too wide. */
+.kb{
+  --kb-key:52px; --kb-gap:6px;
+  display:flex; flex-direction:column; gap:var(--kb-gap); align-items:center;
+  max-width:100%; overflow-x:auto; padding-bottom:4px;
+  scrollbar-width:thin;
 }
-.kb-key .kb-jamo{ font-family:var(--font-kr); font-size:17px; font-weight:700; }
+.kb-row{ display:flex; gap:var(--kb-gap); flex-shrink:0; }
+.kb-row:nth-child(2){ margin-left:calc(var(--kb-key) * 0.5); }
+.kb-row:nth-child(3){ margin-left:calc(var(--kb-key) * 0.96); }
+.kb-key{
+  width:var(--kb-key); height:calc(var(--kb-key) * 1.077);
+  border-radius:8px; background:var(--surface); border:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; position:relative;
+  box-shadow:0 2px 0 var(--border); flex-shrink:0;
+}
+.kb-key .kb-jamo{ font-family:var(--font-kr); font-size:calc(var(--kb-key) * 0.327); font-weight:700; }
 .kb-key .kb-latin{ font-family:var(--font-mono); font-size:8.5px; color:var(--ink-faint); position:absolute; bottom:3px; right:5px; }
 .kb-key.shift-jamo::before{
   content: attr(data-shift); position:absolute; top:3px; left:6px; font-family:var(--font-kr); font-size:11px; color:var(--seal); font-weight:700;
 }
-.kb-key.wide{ width:112px; }
+.kb-key.wide{ width:calc(var(--kb-key) * 2 + var(--kb-gap) * 2); }
+@media (max-width:900px){ .kb{ --kb-key:40px; --kb-gap:5px; } .kb-key .kb-latin{ font-size:7.5px; bottom:2px; right:3px; } }
+@media (max-width:480px){ .kb{ --kb-key:28px; --kb-gap:4px; } .kb-key .kb-latin{ display:none; } .kb-key.shift-jamo::before{ font-size:8px; top:1px; left:2px; } }
 
 .type-sandbox{ background:var(--surface-2); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:16px; }
 .type-output{
@@ -660,6 +699,7 @@ svg.check-icon{ width:20px;height:20px; color:var(--celadon); flex-shrink:0; }
 #toast-container{ position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:10px; }
 .toast{
   display:flex; align-items:center; gap:11px; background:var(--hero-bg); color:var(--hero-text);
+  border:1px solid rgba(255,255,255,0.08);
   padding:13px 18px; border-radius:var(--radius-md); box-shadow:var(--shadow-lg);
   animation:toastIn 0.35s cubic-bezier(.2,0,.2,1) both;
   max-width:300px;
@@ -686,38 +726,182 @@ svg.check-icon{ width:20px;height:20px; color:var(--celadon); flex-shrink:0; }
 /* ============================================================
    SESSION TIMER
    ============================================================ */
-.timer-hero{ display:grid; grid-template-columns:200px 1fr; gap:26px; align-items:center; }
-.timer-ring-wrap{ position:relative; width:200px; height:200px; }
-.timer-ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
-.timer-ring-bg{ fill:none; stroke:var(--border-soft); stroke-width:10; }
-.timer-ring-fg{ fill:none; stroke:var(--celadon); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 0.9s linear; }
-.timer-ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-.timer-time{ font-family:var(--font-mono); font-size:38px; font-weight:700; letter-spacing:-0.02em; line-height:1; }
-.timer-seg-label{ font-size:12px; color:var(--ink-soft); margin-top:6px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; }
-.plan-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
-.plan-card{ padding:14px 10px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--surface); cursor:pointer; text-align:center; transition:all 0.15s ease; }
-.plan-card:hover{ border-color:var(--celadon); transform:translateY(-2px); }
-.plan-card.sel{ border-color:var(--ink); background:var(--ink); color:var(--surface); }
-.plan-card .plan-min{ font-size:22px; font-weight:700; font-family:var(--font-display); line-height:1; }
-.plan-card .plan-name{ font-size:11.5px; margin-top:5px; opacity:0.8; font-weight:600; }
+.timer-card{ border-color:color-mix(in srgb, var(--celadon) 45%, transparent); }
+.timer-hero{ display:grid; grid-template-columns:216px 1fr; gap:30px; align-items:center; }
+.timer-body{ min-width:0; }
+.timer-head{ font-size:20px; margin-bottom:4px; }
+.timer-tip{ font-size:13.5px; color:var(--ink-soft); margin-bottom:16px; line-height:1.5; }
+
+/* --- the ring ------------------------------------------------ */
+.timer-ring-wrap{ position:relative; width:216px; height:216px; margin:0 auto; }
+.timer-ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); overflow:visible; }
+.timer-ring-session-bg{ fill:none; stroke:var(--border-soft); stroke-width:3; }
+.timer-ring-session{
+  fill:none; stroke:var(--gold); stroke-width:3.5; stroke-linecap:round;
+  opacity:0.9; transition:stroke-dashoffset 0.9s linear;
+}
+.ring-stop-a{ stop-color:var(--gold); }
+.ring-stop-b{ stop-color:var(--celadon-bright); }
+.timer-ring-bg{ fill:none; stroke:var(--surface-3); stroke-width:13; }
+.timer-ring-fg{
+  fill:none; stroke:url(#ringGrad); stroke-width:13; stroke-linecap:round;
+  transition:stroke-dashoffset 0.9s linear, stroke 0.4s var(--ease);
+  filter:var(--ring-glow);
+}
+.timer-ring-center{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:6px;
+}
+.timer-time{
+  font-family:var(--font-mono); font-size:42px; font-weight:700;
+  letter-spacing:-0.03em; line-height:1;
+  font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;
+}
+.timer-seg-label{
+  font-size:11px; color:var(--ink-soft); text-transform:uppercase;
+  letter-spacing:0.08em; font-weight:700; max-width:150px; line-height:1.3;
+}
+/* Gentle breathing while running; nothing at all when paused, so the two
+   states are distinguishable at a glance from across the room. */
+.timer-card.running .timer-ring-wrap{ animation:ringBreathe 4s var(--ease) infinite; }
+@keyframes ringBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.015); } }
+.timer-card.paused .timer-ring-fg{ filter:none; opacity:0.5; }
+.timer-card.paused .timer-time{ color:var(--ink-faint); }
+/* Final 30 seconds */
+.timer-ring-wrap.ending .timer-ring-fg{ stroke:var(--seal); filter:drop-shadow(0 0 8px rgba(195,64,44,0.5)); }
+.timer-ring-wrap.ending .timer-time{ color:var(--seal); }
+/* Matches the specificity of the .running breathe rule above and sits
+   later in the sheet, so it wins without !important -- which would
+   otherwise outrank the reduced-motion override (specificity, not
+   source order, decides between !important declarations). */
+.timer-card.running .timer-ring-wrap.ending{ animation:ringUrgent 1s var(--ease) infinite; }
+@keyframes ringUrgent{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.04); } }
+
+/* --- controls ------------------------------------------------ */
+.timer-controls{ display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.timer-main-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 22px; border-radius:var(--radius-full); border:none;
+  background:var(--celadon); color:var(--on-celadon);
+  font-size:14.5px; font-weight:700; cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.timer-main-btn:hover{ background:var(--celadon-deep); transform:translateY(-1px); box-shadow:var(--shadow-md); }
+.timer-main-btn:active{ transform:scale(0.97); }
+.timer-main-btn svg.ic{ width:17px; height:17px; }
+.timer-nudge{
+  display:inline-flex; align-items:center; gap:2px;
+  border:1px solid var(--border); border-radius:var(--radius-full);
+  background:var(--surface); padding:3px;
+}
+.timer-nudge-label{ font-size:11.5px; color:var(--ink-faint); font-weight:700; padding:0 2px; min-width:36px; text-align:center; }
+.timer-round-btn{
+  width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--surface-2); color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.timer-round-btn:hover{ background:var(--celadon-pale); color:var(--celadon-deep); }
+.timer-round-btn:active{ transform:scale(0.9); }
+.timer-round-btn svg.ic{ width:14px; height:14px; }
+
+.timer-meta{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  flex-wrap:wrap; margin-bottom:14px;
+  font-size:12.5px; color:var(--ink-soft);
+}
+.timer-meta > span{ display:inline-flex; align-items:center; gap:6px; }
+.timer-meta svg.ic{ width:14px; height:14px; color:var(--ink-faint); }
+.timer-meta [data-timer="session-left"]{ font-family:var(--font-mono); font-weight:700; color:var(--ink); }
+.timer-end-btn.confirm{ background:var(--seal-pale); color:var(--seal-deep); font-weight:700; }
+.timer-foot{ font-size:11.5px; color:var(--ink-faint); margin-top:14px; }
+.timer-foot kbd{
+  font-family:var(--font-mono); font-size:10.5px; padding:1px 5px;
+  border:1px solid var(--border); border-bottom-width:2px;
+  border-radius:4px; background:var(--surface-2); color:var(--ink-soft);
+}
+
+/* --- plan picker --------------------------------------------- */
+.start-head{ display:flex; align-items:center; gap:10px; margin-bottom:5px; }
+.start-head h3{ font-size:18px; }
+.start-head svg.ic{ width:20px; height:20px; color:var(--celadon); }
+.start-sub{ font-size:13.5px; color:var(--ink-soft); margin-bottom:16px; line-height:1.5; }
+.start-blurb{ font-size:13px; color:var(--ink-soft); margin-bottom:12px; }
+.start-segs{ margin-bottom:16px; }
+.start-btn{ padding:14px; font-size:15px; }
+.plan-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px; }
+.plan-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
+  padding:15px 8px; border-radius:var(--radius-md);
+  border:1.5px solid var(--border); background:var(--surface); color:var(--ink);
+  cursor:pointer; text-align:center; font-family:inherit;
+  transition:border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.plan-card:hover{ border-color:var(--celadon); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.plan-card.sel{ border-color:var(--ink); background:var(--ink); color:var(--surface); box-shadow:var(--shadow-md); }
+.plan-card .plan-min{ font-size:24px; font-weight:700; font-family:var(--font-display); line-height:1; }
+.plan-card .plan-unit{ font-size:10px; text-transform:uppercase; letter-spacing:0.08em; opacity:0.6; margin-top:2px; }
+.plan-card .plan-name{ font-size:11.5px; margin-top:6px; opacity:0.85; font-weight:600; }
+
+/* --- segment checklist --------------------------------------- */
 .seg-list{ display:flex; flex-direction:column; gap:6px; }
-.seg-row{ display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; background:var(--surface-2); border:1px solid transparent; font-size:13.5px; }
+.seg-row{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+  padding:10px 13px; border-radius:var(--radius-sm);
+  background:var(--surface-2); border:1px solid transparent;
+  font-size:13.5px; font-family:inherit; color:var(--ink);
+  transition:background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+button.seg-row{ cursor:pointer; }
+button.seg-row:hover{ background:var(--celadon-pale); border-color:var(--celadon-pale-2); transform:translateX(2px); }
+.seg-name{ flex:1; min-width:0; }
+.seg-min{ font-size:11.5px; color:var(--ink-soft); }
 .seg-row.current{ background:var(--celadon-pale); border-color:var(--celadon); font-weight:700; }
-.seg-row.done{ opacity:0.5; text-decoration:line-through; }
-.seg-dot{ width:9px; height:9px; border-radius:50%; background:var(--border); flex-shrink:0; }
-.seg-row.current .seg-dot{ background:var(--celadon); box-shadow:0 0 0 4px rgba(76,145,134,0.2); }
+.seg-row.done{ opacity:0.55; }
+.seg-row.done .seg-name{ text-decoration:line-through; }
+.seg-dot{ width:9px; height:9px; border-radius:50%; background:var(--border-strong); flex-shrink:0; transition:box-shadow var(--t-mid) var(--ease); }
+.seg-row.current .seg-dot{ background:var(--celadon); box-shadow:var(--shadow-glow); }
 .seg-row.done .seg-dot{ background:var(--celadon-deep); }
 
+/* --- floating widget ----------------------------------------- */
 .timer-widget{
-  position:fixed; bottom:20px; right:20px; z-index:90; background:var(--hero-bg); color:var(--hero-text);
-  border-radius:14px; padding:10px 12px 10px 16px; display:flex; align-items:center; gap:14px;
-  box-shadow:var(--shadow-lg); animation:toastIn 0.3s ease both; cursor:pointer; max-width:340px;
+  position:fixed; bottom:20px; right:20px; z-index:90;
+  background:var(--hero-bg); color:var(--hero-text);
+  border-radius:var(--radius-lg); padding:8px 10px 8px 12px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:var(--shadow-lg); animation:toastIn 0.3s var(--ease-out) both;
+  max-width:340px; border:1px solid rgba(255,255,255,0.08);
 }
-.tw-time{ font-family:var(--font-mono); font-size:20px; font-weight:700; }
-.tw-seg{ font-size:11px; color:var(--hero-dim); text-transform:uppercase; letter-spacing:0.05em; }
-.tw-btn{ width:34px;height:34px; border-radius:50%; border:none; background:rgba(255,255,255,0.12); color:var(--hero-text); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
-.tw-btn:hover{ background:rgba(255,255,255,0.22); }
-.tw-btn svg{ width:15px; height:15px; }
+.tw-open{
+  display:flex; align-items:center; gap:11px; flex:1; min-width:0;
+  background:none; border:none; padding:4px; margin:0;
+  color:inherit; font-family:inherit; cursor:pointer; text-align:left;
+  border-radius:var(--radius-sm);
+}
+.tw-open:hover{ background:rgba(255,255,255,0.07); }
+.tw-ring{ width:34px; height:34px; flex-shrink:0; }
+.tw-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.tw-ring-bg{ fill:none; stroke:rgba(255,255,255,0.16); stroke-width:3; }
+.tw-ring-fg{ fill:none; stroke:var(--celadon-bright); stroke-width:3; stroke-linecap:round; transition:stroke-dashoffset 0.9s linear, stroke 0.4s var(--ease); }
+.timer-widget.ending .tw-ring-fg{ stroke:var(--seal); }
+.timer-widget.paused .tw-ring-fg{ opacity:0.45; }
+.tw-text{ display:flex; flex-direction:column; min-width:0; }
+.tw-time{ font-family:var(--font-mono); font-size:20px; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums; }
+.tw-seg{
+  font-size:10.5px; color:var(--hero-dim); text-transform:uppercase; letter-spacing:0.05em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.tw-actions{ display:flex; gap:6px; flex-shrink:0; }
+.tw-btn{
+  width:34px; height:34px; border-radius:50%; border:none;
+  background:rgba(255,255,255,0.12); color:var(--hero-text);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  transition:background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.tw-btn:hover{ background:rgba(255,255,255,0.24); }
+.tw-btn:active{ transform:scale(0.92); }
+.tw-btn svg.ic{ width:15px; height:15px; }
 
 /* ============================================================
    QUESTS, HEATMAP, WEEK BARS
@@ -920,18 +1104,42 @@ textarea.text-input{ min-height:120px; resize:vertical; font-size:17px; line-hei
    V3 MOBILE
    ============================================================ */
 @media (max-width:900px){
-  .timer-hero{ grid-template-columns:1fr; justify-items:center; text-align:center; }
+  .timer-hero{ grid-template-columns:1fr; gap:22px; }
+  .timer-body{ text-align:center; }
+  .timer-controls, .timer-meta{ justify-content:center; }
+  .timer-tip{ margin-left:auto; margin-right:auto; max-width:46ch; }
+  .seg-list{ text-align:left; }
   .plan-grid{ grid-template-columns:repeat(3,1fr); }
-  .timer-widget{ left:12px; right:12px; bottom:12px; max-width:none; justify-content:space-between; }
+  .timer-widget{ left:12px; right:12px; bottom:12px; max-width:none; }
   .mp-grid{ grid-template-columns:repeat(3,1fr); }
 }
 @media (max-width:480px){
   .plan-grid{ grid-template-columns:repeat(2,1fr); }
+  .timer-ring-wrap{ width:180px; height:180px; }
+  .timer-time{ font-size:36px; }
+  .timer-controls > *{ flex:1 1 auto; justify-content:center; }
   .hw-stage{ width:250px; height:250px; }
   .kp-key{ height:42px; font-size:15px; }
   .wotd-kr{ font-size:32px; }
 }
 
+/* ============================================================
+   REDUCED MOTION
+   Kept last on purpose: these are longhand !important declarations,
+   so against another !important rule they win only on source order.
+   .timer-ring-wrap.ending sets an !important animation shorthand,
+   which would otherwise beat them.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    animation-delay:0ms !important;
+    transition-duration:0.01ms !important;
+    transition-delay:0ms !important;
+    scroll-behavior:auto !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -2277,8 +2485,8 @@ function updateTypingDisplay(){
 }
 
 function renderKeyboard(){
-  const indents = [0,26,50];
-  return '<div class="kb">'+KB_ROWS.map((row,ri)=>'<div class="kb-row" style="margin-left:'+indents[ri]+'px;">'+row.map(k=>{
+  /* Row stagger is a CSS concern now (it has to scale with the key size). */
+  return '<div class="kb">'+KB_ROWS.map(row=>'<div class="kb-row">'+row.map(k=>{
     const jamo = KEY_TO_JAMO[k];
     const shiftJamo = SHIFT_KEY_TO_JAMO[k];
     return '<div class="kb-key'+(shiftJamo?' shift-jamo':'')+'"'+(shiftJamo?' data-shift="'+shiftJamo+'"':'')+'>'+
@@ -4058,15 +4266,64 @@ function wordOfTheDay(){
    ============================================================ */
 function currentPlan(){ return state.timer && SESSION_PLANS.find(p=>p.id===state.timer.planId); }
 function fmtTime(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+/* How long the CURRENT segment is allowed to run. Held separately from the
+   plan so "+1 min" can stretch a segment without the ring reading past full.
+   Falls back to the plan for sessions saved before this field existed. */
+function segTotalSec(){
+  const t = state.timer, plan = currentPlan();
+  if(!plan) return 0;
+  const planned = plan.segs[t.segIdx].min*60;
+  return Math.max(1, t.segTotal || planned);
+}
+/* Whole-session progress, so the outer arc can show how much of the plan is
+   behind you rather than just the segment you are in. */
+function sessionProgress(){
+  const t = state.timer, plan = currentPlan();
+  if(!plan) return { done:0, total:1, frac:0, leftSec:0 };
+  const total = plan.segs.reduce((a,x)=>a+x.min*60, 0);
+  const before = plan.segs.slice(0, t.segIdx).reduce((a,x)=>a+x.min*60, 0);
+  const inSeg = Math.min(plan.segs[t.segIdx].min*60, Math.max(0, segTotalSec()-t.remaining));
+  const done = before + inSeg;
+  const after = plan.segs.slice(t.segIdx+1).reduce((a,x)=>a+x.min*60, 0);
+  return { done, total, frac: Math.min(1, Math.max(0, done/total)), leftSec: Math.max(0, t.remaining) + after };
+}
+function segFrac(){
+  const t = state.timer;
+  return Math.min(1, Math.max(0, 1 - t.remaining/segTotalSec()));
+}
 function startSession(planId){
   const plan = SESSION_PLANS.find(p=>p.id===planId); if(!plan) return;
-  state.timer = { active:true, running:true, planId, segIdx:0, remaining:plan.segs[0].min*60, lastTick:Date.now() };
+  state.timer = { active:true, running:true, planId, segIdx:0, remaining:plan.segs[0].min*60, segTotal:plan.segs[0].min*60, lastTick:Date.now() };
+  view.confirmEnd = false;
   const k = SEG_KINDS[plan.segs[0].kind];
   showToast('Session started', 'First up: '+k.label+'. '+k.tip, 'timer');
   persistState(); render();
 }
-function toggleTimer(){ const t = state.timer; if(!t || !t.active) return; t.running = !t.running; t.lastTick = Date.now(); persistState(); render(); }
-function endSession(){ state.timer = { active:false, running:false, planId:null, segIdx:0, remaining:0, lastTick:null }; persistState(); render(); }
+function toggleTimer(){ const t = state.timer; if(!t || !t.active) return; t.running = !t.running; t.lastTick = Date.now(); sfx(t.running?'correct':null); persistState(); render(); }
+/* Quick nudge, for when a segment is nearly up but you are mid-thought. */
+function adjustTimer(deltaSec){
+  const t = state.timer, plan = currentPlan();
+  if(!t || !t.active || !plan) return;
+  t.remaining = Math.max(5, t.remaining + deltaSec);
+  /* The ring fills against the planned length, or against the stretched
+     length when time has been added, so removing that time again puts the
+     denominator back rather than leaving the ring permanently wrong. */
+  t.segTotal = Math.max(plan.segs[t.segIdx].min*60, t.remaining);
+  t.lastTick = Date.now();
+  persistState(); render();
+}
+/* Jump straight to a segment from the checklist. */
+function jumpToSegment(idx){
+  const t = state.timer, plan = currentPlan();
+  if(!plan || idx<0 || idx>=plan.segs.length || idx===t.segIdx) return;
+  t.segIdx = idx;
+  t.remaining = plan.segs[idx].min*60;
+  t.segTotal = plan.segs[idx].min*60;
+  t.lastTick = Date.now();
+  persistState(); render();
+}
+function endSession(){ state.timer = { active:false, running:false, planId:null, segIdx:0, remaining:0, segTotal:0, lastTick:null }; view.confirmEnd = false; persistState(); render(); }
 function advanceSegment(skipped){
   const t = state.timer, plan = currentPlan();
   if(!plan) return endSession();
@@ -4077,12 +4334,12 @@ function advanceSegment(skipped){
     state.timer = { active:false, running:false, planId:null, segIdx:0, remaining:0, lastTick:null };
     addXp(20); render(); return;
   }
-  t.segIdx++; t.remaining = plan.segs[t.segIdx].min*60; t.lastTick = Date.now();
+  t.segIdx++; t.remaining = plan.segs[t.segIdx].min*60; t.segTotal = plan.segs[t.segIdx].min*60; t.lastTick = Date.now();
   const k = SEG_KINDS[plan.segs[t.segIdx].kind];
   if(!skipped){ sfx('bell'); showToast('Next: '+k.label, plan.segs[t.segIdx].min+' min. '+k.tip, 'timer'); }
   persistState(); render();
 }
-let lastPersistAt = 0;
+let lastPersistAt = 0, endConfirmTimer = null;
 function timerTick(){
   const t = state.timer;
   if(!t || !t.active || !t.running) return;
@@ -4098,18 +4355,31 @@ function timerTick(){
   updateTimerDom();
   if(now-lastPersistAt>15000){ lastPersistAt = now; persistState(); }
 }
+/* Drive an SVG ring from its own geometry rather than a hard-coded radius,
+   so the markup and the maths can never drift apart. */
+function setRing(el, frac){
+  if(!el) return;
+  let r = 0;
+  try{ r = el.r.baseVal.value; }catch(e){ r = parseFloat(el.getAttribute('r'))||0; }
+  const C = 2*Math.PI*r;
+  el.style.strokeDasharray = String(C);
+  el.style.strokeDashoffset = String(C*(1-Math.min(1, Math.max(0, frac))));
+}
 function updateTimerDom(){
   const t = state.timer, plan = currentPlan();
   if(!plan) return;
-  const seg = plan.segs[t.segIdx];
+  const sp = sessionProgress();
   document.querySelectorAll('[data-timer="time"]').forEach(el=>{ el.textContent = fmtTime(t.remaining); });
   document.querySelectorAll('[data-timer="today-min"]').forEach(el=>{ el.textContent = String(minutesOn(todayStr())); });
-  const ring = document.getElementById('timer-ring-fg');
-  if(ring){
-    const C = 2*Math.PI*88, frac = Math.min(1, Math.max(0, 1 - t.remaining/(seg.min*60)));
-    ring.style.strokeDasharray = String(C);
-    ring.style.strokeDashoffset = String(C*(1-frac));
-  }
+  document.querySelectorAll('[data-timer="session-left"]').forEach(el=>{ el.textContent = fmtTime(sp.leftSec); });
+  setRing(document.getElementById('timer-ring-fg'), segFrac());
+  setRing(document.getElementById('timer-ring-session'), sp.frac);
+  setRing(document.getElementById('tw-ring-fg'), segFrac());
+  /* Last 30 seconds get a warmer ring and a soft pulse, so a glance is enough. */
+  const wrap = document.getElementById('timer-ring-wrap');
+  if(wrap) wrap.classList.toggle('ending', t.running && t.remaining <= 30);
+  const widget = document.getElementById('timer-widget');
+  if(widget) widget.classList.toggle('ending', t.running && t.remaining <= 30);
 }
 function goToSegment(kind){
   const k = SEG_KINDS[kind];
@@ -4127,11 +4397,24 @@ function renderTimerWidget(){
   if(!t || !t.active || currentSection==='dashboard') return '';
   const plan = currentPlan(); if(!plan) return '';
   const k = SEG_KINDS[plan.segs[t.segIdx].kind];
-  return '<div class="timer-widget" data-action="nav" data-section="dashboard" title="Open today\u2019s session">'+
-    '<div><div class="tw-seg">'+k.label+' \u00b7 '+(t.segIdx+1)+'/'+plan.segs.length+(t.running?'':' \u00b7 paused')+'</div><div class="tw-time" data-timer="time">'+fmtTime(t.remaining)+'</div></div>'+
-    '<div style="display:flex;gap:6px;">'+
-      '<button class="tw-btn" data-action="timer-toggle" aria-label="'+(t.running?'Pause':'Resume')+'">'+icon(t.running?'pause':'play')+'</button>'+
-      '<button class="tw-btn" data-action="timer-skip" aria-label="Next segment">'+icon('skip')+'</button>'+
+  const ending = t.running && t.remaining <= 30;
+  const C = 2*Math.PI*15;
+  return '<div class="timer-widget'+(t.running?'':' paused')+(ending?' ending':'')+'" id="timer-widget">'+
+    '<button class="tw-open" data-action="nav" data-section="dashboard" aria-label="Open today’s session">'+
+      '<span class="tw-ring">'+
+        '<svg viewBox="0 0 34 34" aria-hidden="true">'+
+          '<circle class="tw-ring-bg" cx="17" cy="17" r="15"/>'+
+          '<circle class="tw-ring-fg" id="tw-ring-fg" cx="17" cy="17" r="15" style="stroke-dasharray:'+C+';stroke-dashoffset:'+(C*(1-segFrac()))+';"/>'+
+        '</svg>'+
+      '</span>'+
+      '<span class="tw-text">'+
+        '<span class="tw-seg">'+escapeHtml(k.label)+' · '+(t.segIdx+1)+'/'+plan.segs.length+(t.running?'':' · paused')+'</span>'+
+        '<span class="tw-time" data-timer="time">'+fmtTime(t.remaining)+'</span>'+
+      '</span>'+
+    '</button>'+
+    '<div class="tw-actions">'+
+      '<button class="tw-btn" data-action="timer-toggle" aria-label="'+(t.running?'Pause':'Resume')+'" title="'+(t.running?'Pause':'Resume')+'">'+icon(t.running?'pause':'play')+'</button>'+
+      '<button class="tw-btn" data-action="timer-skip" aria-label="Next segment" title="Next segment">'+icon('skip')+'</button>'+
     '</div></div>';
 }
 
@@ -4357,38 +4640,92 @@ function renderSessionCard(){
   const t = state.timer;
   if(t && t.active){
     const plan = currentPlan();
+    if(!plan) return '';
     const seg = plan.segs[t.segIdx], k = SEG_KINDS[seg.kind];
-    const C = 2*Math.PI*88, frac = Math.min(1, Math.max(0, 1 - t.remaining/(seg.min*60)));
-    return '<div class="card card-pad" style="margin-bottom:22px;border-color:var(--celadon);">'+
+    const sp = sessionProgress();
+    const ending = t.running && t.remaining <= 30;
+    return '<div class="card card-pad timer-card'+(t.running?' running':' paused')+'" style="margin-bottom:22px;">'+
       '<div class="timer-hero">'+
-        '<div class="timer-ring-wrap">'+
-          '<svg viewBox="0 0 200 200"><circle class="timer-ring-bg" cx="100" cy="100" r="88"/><circle id="timer-ring-fg" class="timer-ring-fg" cx="100" cy="100" r="88" style="stroke-dasharray:'+C+';stroke-dashoffset:'+(C*(1-frac))+';"/></svg>'+
-          '<div class="timer-ring-center"><div class="timer-time" data-timer="time">'+fmtTime(t.remaining)+'</div><div class="timer-seg-label">'+(t.running?k.label:'Paused')+'</div></div>'+
-        '</div>'+
-        '<div style="width:100%;">'+
-          '<div class="section-eyebrow">'+plan.name+' session \u00b7 '+plan.minutes+' min \u00b7 segment '+(t.segIdx+1)+' of '+plan.segs.length+'</div>'+
-          '<h3 style="font-size:19px;margin-bottom:4px;">'+k.label+'</h3>'+
-          '<p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;">'+k.tip+'</p>'+
-          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">'+
-            '<button class="btn btn-celadon" data-action="seg-go" data-kind="'+seg.kind+'">Go to '+k.label.toLowerCase()+'</button>'+
-            '<button class="btn btn-outline" data-action="timer-toggle">'+icon(t.running?'pause':'play')+(t.running?' Pause':' Resume')+'</button>'+
-            '<button class="btn btn-outline" data-action="timer-skip">'+icon('skip')+' Next</button>'+
-            '<button class="btn btn-ghost" data-action="timer-end">End</button>'+
+
+        '<div class="timer-ring-wrap'+(ending?' ending':'')+'" id="timer-ring-wrap">'+
+          '<svg viewBox="0 0 200 200" aria-hidden="true">'+
+            '<defs>'+
+              /* stop-color is set from CSS, not as an attribute: var() is
+                 only resolved in CSS property values, never in a
+                 presentation attribute. */
+              '<linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">'+
+                '<stop class="ring-stop-a" offset="0%"/>'+
+                '<stop class="ring-stop-b" offset="100%"/>'+
+              '</linearGradient>'+
+            '</defs>'+
+            /* outer hairline: progress through the WHOLE plan */
+            '<circle class="timer-ring-session-bg" cx="100" cy="100" r="94"/>'+
+            '<circle class="timer-ring-session" id="timer-ring-session" cx="100" cy="100" r="94"/>'+
+            /* inner band: progress through the current segment */
+            '<circle class="timer-ring-bg" cx="100" cy="100" r="78"/>'+
+            '<circle class="timer-ring-fg" id="timer-ring-fg" cx="100" cy="100" r="78"/>'+
+          '</svg>'+
+          '<div class="timer-ring-center">'+
+            '<div class="timer-time" data-timer="time">'+fmtTime(t.remaining)+'</div>'+
+            '<div class="timer-seg-label">'+(t.running?escapeHtml(k.label):'Paused')+'</div>'+
           '</div>'+
-          '<div class="seg-list">'+plan.segs.map((s,i)=>'<div class="seg-row'+(i<t.segIdx?' done':'')+(i===t.segIdx?' current':'')+'"><span class="seg-dot"></span><span style="flex:1;">'+SEG_KINDS[s.kind].label+'</span><span class="mono" style="font-size:11.5px;">'+s.min+' min</span></div>').join('')+'</div>'+
+        '</div>'+
+
+        '<div class="timer-body">'+
+          '<div class="section-eyebrow">'+plan.name+' session · segment '+(t.segIdx+1)+' of '+plan.segs.length+'</div>'+
+          '<h3 class="timer-head">'+escapeHtml(k.label)+'</h3>'+
+          '<p class="timer-tip">'+escapeHtml(k.tip)+'</p>'+
+
+          '<div class="timer-controls">'+
+            '<button class="timer-main-btn" data-action="timer-toggle" aria-label="'+(t.running?'Pause the timer':'Resume the timer')+'">'+
+              icon(t.running?'pause':'play')+'<span>'+(t.running?'Pause':'Resume')+'</span>'+
+            '</button>'+
+            '<div class="timer-nudge" role="group" aria-label="Adjust this segment">'+
+              '<button class="timer-round-btn" data-action="timer-sub" aria-label="Take a minute off this segment" title="−1 minute">'+icon('minus')+'</button>'+
+              '<span class="timer-nudge-label">1 min</span>'+
+              '<button class="timer-round-btn" data-action="timer-add" aria-label="Add a minute to this segment" title="+1 minute">'+icon('plus')+'</button>'+
+            '</div>'+
+            '<button class="btn btn-outline" data-action="timer-skip">'+icon('skip')+' Next</button>'+
+            '<button class="btn btn-celadon" data-action="seg-go" data-kind="'+seg.kind+'">Go to '+escapeHtml(k.label.toLowerCase())+'</button>'+
+          '</div>'+
+
+          '<div class="timer-meta">'+
+            '<span>'+icon('clock')+'<span data-timer="session-left">'+fmtTime(sp.leftSec)+'</span> left in this session</span>'+
+            '<button class="btn btn-ghost btn-sm timer-end-btn'+(view.confirmEnd?' confirm':'')+'" data-action="timer-end">'+
+              (view.confirmEnd?'Tap again to end':'End session')+'</button>'+
+          '</div>'+
+
+          '<div class="seg-list">'+plan.segs.map((sg,i)=>{
+            const kk = SEG_KINDS[sg.kind];
+            const cls = i<t.segIdx ? ' done' : (i===t.segIdx ? ' current' : '');
+            return '<button class="seg-row'+cls+'" data-action="timer-jump" data-idx="'+i+'" '+
+              (i===t.segIdx?'aria-current="step" ':'')+
+              'title="'+(i===t.segIdx?'Current segment':'Jump to '+escapeHtml(kk.label))+'">'+
+              '<span class="seg-dot"></span>'+
+              '<span class="seg-name">'+escapeHtml(kk.label)+'</span>'+
+              '<span class="mono seg-min">'+sg.min+' min</span>'+
+            '</button>';
+          }).join('')+'</div>'+
         '</div>'+
       '</div>'+
-      '<p style="font-size:11.5px;color:var(--ink-faint);margin-top:14px;">The timer keeps running while you move around the app. A chime plays when each segment ends.</p>'+
+      '<p class="timer-foot">Keeps running as you move around the app · <kbd>Space</kbd> pause · <kbd>N</kbd> next segment</p>'+
     '</div>';
   }
+
   const pick = SESSION_PLANS.find(p=>p.id===(view.planPick||'standard')) || SESSION_PLANS[1];
   return '<div class="card card-pad" style="margin-bottom:22px;">'+
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+icon('timer')+'<h3 style="font-size:17px;">Start today\u2019s session</h3></div>'+
-    '<p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:16px;">Pick a length. The timer walks you through review, new material, listening, speaking, and writing in the right order.</p>'+
-    '<div class="plan-grid" style="margin-bottom:16px;">'+SESSION_PLANS.map(p=>'<div class="plan-card'+(p.id===pick.id?' sel':'')+'" data-action="plan-pick" data-plan="'+p.id+'"><div class="plan-min">'+p.minutes+'</div><div class="plan-name">'+p.name+'</div></div>').join('')+'</div>'+
-    '<p style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">'+pick.blurb+'</p>'+
-    '<div class="seg-list" style="margin-bottom:16px;">'+pick.segs.map(s=>'<div class="seg-row"><span class="seg-dot"></span><span style="flex:1;">'+SEG_KINDS[s.kind].label+'</span><span class="mono" style="font-size:11.5px;">'+s.min+' min</span></div>').join('')+'</div>'+
-    '<button class="btn btn-primary btn-block" data-action="session-start" data-plan="'+pick.id+'" style="padding:13px;">'+icon('play')+' Start '+pick.minutes+'-minute session</button>'+
+    '<div class="start-head">'+icon('timer')+'<h3>Start today’s session</h3></div>'+
+    '<p class="start-sub">Pick a length. The timer walks you through review, new material, listening, speaking, and writing in the right order.</p>'+
+    '<div class="plan-grid">'+SESSION_PLANS.map(p=>
+      '<button class="plan-card'+(p.id===pick.id?' sel':'')+'" data-action="plan-pick" data-plan="'+p.id+'" aria-pressed="'+(p.id===pick.id)+'">'+
+        '<span class="plan-min">'+p.minutes+'</span>'+
+        '<span class="plan-unit">min</span>'+
+        '<span class="plan-name">'+p.name+'</span>'+
+      '</button>').join('')+'</div>'+
+    '<p class="start-blurb">'+pick.blurb+'</p>'+
+    '<div class="seg-list start-segs">'+pick.segs.map(sg=>
+      '<div class="seg-row"><span class="seg-dot"></span><span class="seg-name">'+SEG_KINDS[sg.kind].label+'</span><span class="mono seg-min">'+sg.min+' min</span></div>').join('')+'</div>'+
+    '<button class="btn btn-primary btn-block start-btn" data-action="session-start" data-plan="'+pick.id+'">'+icon('play')+' Start '+pick.minutes+'-minute session</button>'+
   '</div>';
 }
 
@@ -4868,7 +5205,23 @@ document.addEventListener('click', function(e){
     case 'session-start': startSession(el.getAttribute('data-plan')); break;
     case 'timer-toggle': e.stopPropagation(); toggleTimer(); break;
     case 'timer-skip': e.stopPropagation(); advanceSegment(true); break;
-    case 'timer-end': endSession(); showToast('Session ended', minutesOn(todayStr())+' minutes logged today.', 'timer'); break;
+    case 'timer-add': e.stopPropagation(); adjustTimer(60); break;
+    case 'timer-sub': e.stopPropagation(); adjustTimer(-60); break;
+    case 'timer-jump': e.stopPropagation(); jumpToSegment(parseInt(el.getAttribute('data-idx'),10)); break;
+    /* Ending loses the session, so the first tap only arms the button. */
+    case 'timer-end':
+      e.stopPropagation();
+      if(!view.confirmEnd){
+        view.confirmEnd = true;
+        render();
+        clearTimeout(endConfirmTimer);
+        endConfirmTimer = setTimeout(()=>{ if(view.confirmEnd){ view.confirmEnd = false; render(); } }, 4000);
+      } else {
+        clearTimeout(endConfirmTimer);
+        endSession();
+        showToast('Session ended', minutesOn(todayStr())+' minutes logged today.', 'timer');
+      }
+      break;
     case 'seg-go': goToSegment(el.getAttribute('data-kind')); break;
 
     /* today */
@@ -4983,6 +5336,18 @@ document.addEventListener('input', function(e){
 });
 document.addEventListener('keydown', function(e){
   if(e.key==='Enter' && e.target && e.target.id==='trText-input'){ e.preventDefault(); const b = document.querySelector('[data-action="write-check"]'); if(b) b.click(); }
+});
+
+/* Timer shortcuts. Deliberately inert while the caret is in a field or the
+   typing/writing drills are mounted, both of which swallow raw keystrokes. */
+document.addEventListener('keydown', function(e){
+  if(!state.timer || !state.timer.active) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  if(currentSection==='typing' || currentSection==='writing') return;
+  const el = e.target;
+  if(el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA' || el.isContentEditable)) return;
+  if(e.code==='Space' || e.key===' '){ e.preventDefault(); toggleTimer(); }
+  else if(e.key==='n' || e.key==='N'){ e.preventDefault(); advanceSegment(true); }
 });
 document.addEventListener('change', function(e){
   if(e.target && e.target.id==='import-file' && e.target.files && e.target.files[0]) importProgress(e.target.files[0]);
