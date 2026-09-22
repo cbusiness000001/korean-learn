@@ -12,41 +12,174 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hangeul Path">
 <meta name="mobile-web-app-capable" content="yes">
+<script>
+/* Runs before first paint: resolves the saved theme choice from a small
+   mirror key, because the real progress store may load asynchronously. */
+(function(){
+  var t = 'light';
+  try{
+    var c = localStorage.getItem('hangeul-path-theme') || 'auto';
+    if(c === 'dark') t = 'dark';
+    else if(c === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+  }catch(e){ /* storage blocked; fall back to light */ }
+  document.documentElement.setAttribute('data-theme', t);
+  if(t === 'dark'){
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute('content', '#0E1719');
+  }
+})();
+</script>
 <style>
 /* ============================================================
    DESIGN TOKENS
    Palette drawn from Korean celadon pottery (청자) glaze tones,
    ink-wash black (먹), and traditional red seal-stamp ink (인주):
    not a generic template palette.
+
+   Every colour below is a token. The dark theme at the bottom of
+   this block re-states the same names, so components never need
+   to know which theme is active.
    ============================================================ */
 :root{
+  color-scheme:light;
+
+  /* --- surfaces & ink --- */
   --paper:#EDF2EE;
+  --paper-2:#E3EBE5;
   --surface:#FFFFFF;
   --surface-2:#F4F8F5;
+  --surface-3:#EAF1EC;
   --ink:#16262A;
+  --ink-2:#243A3F;
   --ink-soft:#5B6E6A;
   --ink-faint:#8A9C97;
+
+  /* --- accents --- */
   --celadon:#4C9186;
   --celadon-deep:#356F63;
+  --celadon-bright:#5FA99C;
   --celadon-pale:#DCEBE4;
   --celadon-pale-2:#CFE4DB;
   --seal:#C3402C;
   --seal-deep:#9E3221;
   --seal-pale:#F5DAD3;
   --gold:#B08A3E;
+  --gold-bright:#C9A353;
   --gold-pale:#F0E4C8;
+
+  /* --- lines --- */
   --border:#D7E2DC;
   --border-soft:#E5EDE8;
+  --border-strong:#C3D3CC;
+
+  /* --- on-accent text (flips in dark so contrast survives) --- */
+  --on-celadon:#FFFFFF;
+  --on-seal:#FFFFFF;
+  --on-ink:#FFFFFF;
+
+  /* --- text over the dark hero panel --- */
+  --hero-bg:#16262A;
+  --hero-text:#FFFFFF;
+  --hero-dim:#B9CBC6;
+  --hero-faint:#9FB8B1;
+  --hero-line:rgba(255,255,255,0.14);
+  --hero-cell:rgba(255,255,255,0.055);
+  --hero-chip:rgba(255,255,255,0.09);
+
+  /* --- heatmap ramp --- */
+  --hm-0:#E5EDE8;
+  --hm-1:#CFE4DB;
+  --hm-2:#9CC8BA;
+  --hm-3:#4C9186;
+  --hm-4:#2A5C52;
+
+  /* --- elevation --- */
   --shadow-sm:0 1px 2px rgba(22,38,42,0.06), 0 1px 1px rgba(22,38,42,0.04);
   --shadow-md:0 4px 14px rgba(22,38,42,0.08), 0 2px 4px rgba(22,38,42,0.05);
   --shadow-lg:0 12px 32px rgba(22,38,42,0.14), 0 4px 10px rgba(22,38,42,0.06);
-  --radius-sm:6px;
-  --radius-md:10px;
-  --radius-lg:16px;
+  --shadow-glow:0 0 0 4px rgba(76,145,134,0.16);
+  --ring-glow:drop-shadow(0 0 6px rgba(76,145,134,0.45));
+
+  /* --- geometry --- */
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:18px;
+  --radius-full:999px;
+
+  /* --- motion: one easing vocabulary, used everywhere --- */
+  --ease:cubic-bezier(.2,0,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --t-fast:0.15s;
+  --t-mid:0.25s;
+  --t-slow:0.45s;
+
   --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Noto Serif', serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, 'Courier New', monospace;
   --font-kr: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', sans-serif;
+}
+
+/* ------------------------------------------------------------
+   DARK THEME
+   Not an inversion: the paper becomes ink-wash, the celadon is
+   lifted so it still reads as glaze rather than mud, and the
+   seal red is warmed so it stays legible on a dark ground.
+   Applied when the user picks dark, or picks auto (no
+   data-theme attribute) and the OS asks for dark.
+   ------------------------------------------------------------ */
+html[data-theme="dark"]{
+  color-scheme:dark;
+
+  --paper:#0E1719;
+  --paper-2:#0A1113;
+  --surface:#162427;
+  --surface-2:#1C2E31;
+  --surface-3:#22373B;
+  --ink:#E8F0EC;
+  --ink-2:#F2F7F4;
+  --ink-soft:#A3B8B3;
+  --ink-faint:#7A908B;
+
+  --celadon:#6DB5A6;
+  --celadon-deep:#8ACCBC;
+  --celadon-bright:#8ACCBC;
+  --celadon-pale:#1E3A38;
+  --celadon-pale-2:#254743;
+  --seal:#E4715C;
+  --seal-deep:#F0907D;
+  --seal-pale:#3A211C;
+  --gold:#D4AC63;
+  --gold-bright:#E2C084;
+  --gold-pale:#33291a;
+
+  --border:#2A4247;
+  --border-soft:#22373B;
+  --border-strong:#375257;
+
+  --on-celadon:#0B1618;
+  --on-seal:#1A0C09;
+  --on-ink:#0E1719;
+
+  --hero-bg:#1B2F33;
+  --hero-text:#F2F7F4;
+  --hero-dim:#A9C3BD;
+  --hero-faint:#8FA8A3;
+  --hero-line:rgba(255,255,255,0.10);
+  --hero-cell:rgba(255,255,255,0.045);
+  --hero-chip:rgba(255,255,255,0.07);
+
+  --hm-0:#1C2E31;
+  --hm-1:#254743;
+  --hm-2:#3A6D63;
+  --hm-3:#5FA99C;
+  --hm-4:#8ACCBC;
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.40), 0 1px 1px rgba(0,0,0,0.30);
+  --shadow-md:0 4px 14px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.30);
+  --shadow-lg:0 12px 32px rgba(0,0,0,0.55), 0 4px 10px rgba(0,0,0,0.35);
+  --shadow-glow:0 0 0 4px rgba(109,181,166,0.20);
+  --ring-glow:drop-shadow(0 0 8px rgba(109,181,166,0.55));
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -57,11 +190,18 @@
 html,body{ height:100%; }
 body{
   margin:0;
-  background:var(--paper);
+  /* A very soft celadon wash so the paper reads as a surface with
+     depth rather than a flat fill. Fixed, so it never scroll-jitters. */
+  background:
+    radial-gradient(1100px 620px at 12% -8%, color-mix(in srgb, var(--celadon) 11%, transparent), transparent 62%),
+    radial-gradient(900px 560px at 108% 4%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 60%),
+    var(--paper);
+  background-attachment:fixed;
   color:var(--ink);
   font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
+  transition:background-color var(--t-mid) var(--ease), color var(--t-mid) var(--ease);
 }
 h1,h2,h3,h4{ font-family:var(--font-display); font-weight:600; margin:0; color:var(--ink); }
 p{ margin:0; }
@@ -69,6 +209,24 @@ button{ font-family:inherit; }
 a{ color:inherit; }
 .kr{ font-family:var(--font-kr); }
 .mono{ font-family:var(--font-mono); letter-spacing:0.01em; }
+
+/* ------------------------------------------------------------
+   ICONS
+   icon() emits <svg class="ic"> with a viewBox but no intrinsic
+   size, so without this an icon expands to the SVG default box
+   (up to ~670px). This is the single baseline; the contextual
+   rules further down all come later in the sheet and so win on
+   source order at equal specificity.
+   ------------------------------------------------------------ */
+svg.ic{
+  width:18px; height:18px;
+  flex-shrink:0;
+  display:inline-block;
+  vertical-align:-0.18em;
+}
+.btn svg.ic{ width:16px; height:16px; }
+.btn-sm svg.ic{ width:14px; height:14px; }
+h1 svg.ic, h2 svg.ic, h3 svg.ic{ vertical-align:-0.12em; }
 
 ::selection{ background:var(--celadon-pale-2); color:var(--ink); }
 
@@ -104,9 +262,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .brand{ display:flex; align-items:center; gap:10px; padding:4px 8px 22px; }
 .brand-mark{
   width:38px;height:38px;border-radius:var(--radius-sm);
-  background:var(--ink);
+  background:var(--hero-bg);
   display:flex;align-items:center;justify-content:center;
-  color:var(--surface); font-family:var(--font-kr); font-size:19px; font-weight:700;
+  color:var(--hero-text); font-family:var(--font-kr); font-size:19px; font-weight:700;
   flex-shrink:0;
 }
 .brand-text h1{ font-size:16.5px; line-height:1.15; letter-spacing:-0.01em;}
@@ -160,12 +318,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   white-space:nowrap;
 }
 .btn-primary{ background:var(--ink); color:var(--surface); }
-.btn-primary:hover{ background:#243a3f; transform:translateY(-1px); box-shadow:var(--shadow-sm); }
-.btn-celadon{ background:var(--celadon); color:#fff; }
+.btn-primary:hover{ background:var(--ink-2); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+.btn-celadon{ background:var(--celadon); color:var(--on-celadon); }
 .btn-celadon:hover{ background:var(--celadon-deep); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
 .btn-outline{ background:var(--surface); color:var(--ink); border-color:var(--border); }
 .btn-outline:hover{ border-color:var(--ink-faint); background:var(--surface-2); }
-.btn-seal{ background:var(--seal); color:#fff; }
+.btn-seal{ background:var(--seal); color:var(--on-seal); }
 .btn-seal:hover{ background:var(--seal-deep); }
 .btn-ghost{ background:transparent; color:var(--ink-soft); border:none; }
 .btn-ghost:hover{ color:var(--ink); background:var(--surface-2); }
@@ -211,13 +369,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    Hangul syllable is literally constructed from its parts.
    ============================================================ */
 .hero-card{
-  background:var(--ink); color:var(--surface); border-radius:var(--radius-lg);
+  background:var(--hero-bg); color:var(--hero-text); border-radius:var(--radius-lg);
   padding:26px 28px; position:relative; overflow:hidden; margin-bottom:22px;
 }
 .hero-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; position:relative; z-index:1;}
 .hero-greet{ font-size:22px; font-family:var(--font-display); }
 .hero-greet .kr{ font-family:var(--font-kr); }
-.hero-sub{ color:#B9CBC6; font-size:13.5px; margin-top:5px; max-width:44ch; line-height:1.5;}
+.hero-sub{ color:var(--hero-dim); font-size:13.5px; margin-top:5px; max-width:44ch; line-height:1.5;}
 .streak-chip{
   display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.09);
   border:1px solid rgba(255,255,255,0.14); padding:8px 14px; border-radius:var(--radius-sm);
@@ -225,7 +383,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 }
 .streak-chip svg{ width:18px;height:18px; animation:flameFlicker 1.8s ease-in-out infinite; transform-origin:center bottom; }
 .streak-num{ font-size:18px; font-weight:700; line-height:1; }
-.streak-label{ font-size:10.5px; color:#B9CBC6; text-transform:uppercase; letter-spacing:0.06em; }
+.streak-label{ font-size:10.5px; color:var(--hero-dim); text-transform:uppercase; letter-spacing:0.06em; }
 
 /* the "block": 2 cells on top (초성=streak/level, 중성=today), 1 wide cell on bottom (종성=overall) */
 .syllable-stats{
@@ -235,11 +393,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 }
 .syl-cell{ background:rgba(255,255,255,0.055); padding:16px 18px; }
 .syl-cell.wide{ grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
-.syl-cell-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.07em; color:#9FB8B1; margin-bottom:6px; }
+.syl-cell-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.07em; color:var(--hero-faint); margin-bottom:6px; }
 .syl-cell-value{ font-size:24px; font-weight:700; font-family:var(--font-display); line-height:1; }
 .syl-cell .progress-track{ background:rgba(255,255,255,0.15); flex:1; min-width:140px; }
 .syl-cell .progress-fill{ background:var(--gold); }
-.xp-to-next{ font-size:11.5px; color:#9FB8B1; white-space:nowrap; }
+.xp-to-next{ font-size:11.5px; color:var(--hero-faint); white-space:nowrap; }
 
 .continue-card{
   display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
@@ -312,7 +470,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   width:34px;height:34px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
   display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.15s ease;
 }
-.audio-btn:hover{ background:var(--celadon); border-color:var(--celadon); color:#fff; }
+.audio-btn:hover{ background:var(--celadon); border-color:var(--celadon); color:var(--on-celadon); }
 .audio-btn svg{ width:15px;height:15px; }
 
 .builder-wrap{ display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
@@ -389,13 +547,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:20px;
   background:var(--surface); border:1px solid var(--border-soft); box-shadow:var(--shadow-md);
 }
-.flashcard-face.back{ transform:rotateY(180deg); background:var(--ink); color:var(--surface); }
+.flashcard-face.back{ transform:rotateY(180deg); background:var(--hero-bg); color:var(--hero-text); }
 .flash-kr{ font-family:var(--font-kr); font-size:42px; font-weight:700; text-align:center; }
 .flash-rom{ font-family:var(--font-mono); font-size:14px; color:var(--celadon-deep); }
-.flashcard-face.back .flash-rom{ color:#9FB8B1; }
+.flashcard-face.back .flash-rom{ color:var(--hero-faint); }
 .flash-en{ font-size:22px; font-weight:600; font-family:var(--font-display); text-align:center; }
 .flash-hint{ font-size:11px; color:var(--ink-faint); position:absolute; bottom:14px; }
-.flashcard-face.back .flash-hint{ color:#7C9994; }
+.flashcard-face.back .flash-hint{ color:var(--hero-faint); }
 .flash-controls{ display:flex; gap:12px; width:100%; max-width:420px; }
 .flash-controls .btn{ flex:1; }
 .flash-progress-row{ display:flex; align-items:center; gap:10px; width:100%; max-width:420px; margin-bottom:16px; font-size:12px; color:var(--ink-soft); }
@@ -411,10 +569,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .lesson-card{ padding:17px 19px; display:flex; align-items:center; gap:15px; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease;}
 .lesson-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
 .lesson-num{ width:34px;height:34px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border-soft); display:flex;align-items:center;justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:13px; color:var(--ink-soft); flex-shrink:0; }
-.lesson-card.done .lesson-num{ background:var(--celadon); color:#fff; border-color:var(--celadon); }
+.lesson-card.done .lesson-num{ background:var(--celadon); color:var(--on-celadon); border-color:var(--celadon); }
 .lesson-title{ font-weight:700; font-size:14.5px; }
 .lesson-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
-.check-icon{ width:20px;height:20px; color:var(--celadon); flex-shrink:0; }
+svg.check-icon{ width:20px;height:20px; color:var(--celadon); flex-shrink:0; }
 
 .gram-example{ background:var(--surface-2); border-radius:var(--radius-md); padding:14px 16px; margin-top:8px; }
 .gram-example + .gram-example{ margin-top:10px; }
@@ -501,7 +659,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    ============================================================ */
 #toast-container{ position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:10px; }
 .toast{
-  display:flex; align-items:center; gap:11px; background:var(--ink); color:var(--surface);
+  display:flex; align-items:center; gap:11px; background:var(--hero-bg); color:var(--hero-text);
   padding:13px 18px; border-radius:var(--radius-md); box-shadow:var(--shadow-lg);
   animation:toastIn 0.35s cubic-bezier(.2,0,.2,1) both;
   max-width:300px;
@@ -512,7 +670,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .toast-icon{ width:32px;height:32px;border-radius:50%; background:var(--gold); display:flex;align-items:center;justify-content:center; flex-shrink:0; }
 .toast-icon svg{ width:16px;height:16px; }
 .toast-title{ font-size:12px; font-weight:700; }
-.toast-sub{ font-size:12.5px; color:#C9D8D4; }
+.toast-sub{ font-size:12.5px; color:var(--hero-dim); }
 
 
 /* ============================================================
@@ -551,13 +709,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .seg-row.done .seg-dot{ background:var(--celadon-deep); }
 
 .timer-widget{
-  position:fixed; bottom:20px; right:20px; z-index:90; background:var(--ink); color:var(--surface);
+  position:fixed; bottom:20px; right:20px; z-index:90; background:var(--hero-bg); color:var(--hero-text);
   border-radius:14px; padding:10px 12px 10px 16px; display:flex; align-items:center; gap:14px;
   box-shadow:var(--shadow-lg); animation:toastIn 0.3s ease both; cursor:pointer; max-width:340px;
 }
 .tw-time{ font-family:var(--font-mono); font-size:20px; font-weight:700; }
-.tw-seg{ font-size:11px; color:#B9CBC6; text-transform:uppercase; letter-spacing:0.05em; }
-.tw-btn{ width:34px;height:34px; border-radius:50%; border:none; background:rgba(255,255,255,0.12); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.tw-seg{ font-size:11px; color:var(--hero-dim); text-transform:uppercase; letter-spacing:0.05em; }
+.tw-btn{ width:34px;height:34px; border-radius:50%; border:none; background:rgba(255,255,255,0.12); color:var(--hero-text); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
 .tw-btn:hover{ background:rgba(255,255,255,0.22); }
 .tw-btn svg{ width:15px; height:15px; }
 
@@ -566,7 +724,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    ============================================================ */
 .quest-row{ display:flex; align-items:center; gap:13px; padding:12px 0; border-bottom:1px solid var(--border-soft); }
 .quest-row:last-child{ border-bottom:none; }
-.quest-check{ width:26px;height:26px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; transition:all 0.25s ease; }
+.quest-check{ width:26px;height:26px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--on-celadon); transition:all var(--t-mid) var(--ease); }
 .quest-row.done .quest-check{ background:var(--celadon); border-color:var(--celadon); animation:popIn 0.4s ease; }
 .quest-row.done .quest-title{ color:var(--ink-soft); text-decoration:line-through; }
 .quest-title{ font-size:14px; font-weight:600; }
@@ -577,8 +735,8 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .week-bar-label{ font-size:10.5px; color:var(--ink-soft); font-weight:600; }
 .week-bar-val{ font-size:10px; color:var(--ink-faint); font-family:var(--font-mono); }
 .heatmap{ display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,1fr); gap:3px; overflow-x:auto; padding-bottom:4px; }
-.hm-cell{ width:13px; height:13px; border-radius:3px; background:var(--border-soft); }
-.hm-1{ background:#CFE4DB; } .hm-2{ background:#9CC8BA; } .hm-3{ background:#4C9186; } .hm-4{ background:#2A5C52; }
+.hm-cell{ width:13px; height:13px; border-radius:3px; background:var(--hm-0); }
+.hm-1{ background:var(--hm-1); } .hm-2{ background:var(--hm-2); } .hm-3{ background:var(--hm-3); } .hm-4{ background:var(--hm-4); }
 .hm-legend{ display:flex; align-items:center; gap:4px; font-size:11px; color:var(--ink-soft); margin-top:8px; }
 .wotd{ display:flex; align-items:center; gap:18px; }
 .wotd-kr{ font-family:var(--font-kr); font-size:40px; font-weight:700; line-height:1; }
@@ -586,16 +744,77 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 /* ============================================================
    VIDEOS
    ============================================================ */
-.video-frame{ position:relative; width:100%; aspect-ratio:16/9; border-radius:var(--radius-md); overflow:hidden; background:#0d1a1c; }
-.video-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-.video-thumb{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.85; }
-.video-play{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border:none; background:linear-gradient(0deg, rgba(0,0,0,0.35), rgba(0,0,0,0.05)); cursor:pointer; }
-.video-play span{ width:64px;height:64px; border-radius:50%; background:var(--seal); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-lg); transition:transform 0.15s ease; }
-.video-play:hover span{ transform:scale(1.08); }
+.video-frame{
+  position:relative; width:100%; aspect-ratio:16/9;
+  border-radius:var(--radius-md); overflow:hidden; background:#0B1416;
+  box-shadow:var(--shadow-md);
+}
+.video-thumb{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:0.82; transition:opacity var(--t-mid) var(--ease), transform var(--t-slow) var(--ease-out);
+}
+.video-frame:hover .video-thumb{ opacity:1; transform:scale(1.03); }
+.video-play{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  border:none; cursor:pointer; padding:0;
+  background:linear-gradient(0deg, rgba(0,0,0,0.42), rgba(0,0,0,0.04));
+}
+.video-play span{
+  width:66px; height:66px; border-radius:50%;
+  background:var(--seal); color:var(--on-seal);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-lg), 0 0 0 0 rgba(195,64,44,0.45);
+  transition:transform var(--t-mid) var(--ease-spring), box-shadow var(--t-mid) var(--ease);
+}
+/* The play glyph needs an explicit size and a nudge: its bounding box is
+   wider on the left than the visual triangle, so dead-centre looks off. */
+.video-play span svg.ic{ width:26px; height:26px; margin-left:3px; }
+.video-play:hover span{ transform:scale(1.09); box-shadow:var(--shadow-lg), 0 0 0 12px rgba(195,64,44,0.14); }
+.video-play:active span{ transform:scale(0.98); }
+
+/* Placeholder state: the real player is the #yt-host element on top. */
+.video-frame.is-playing{ background:#0B1416; }
+.video-loading{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
+  color:rgba(255,255,255,0.55); font-size:13px;
+}
+.video-spinner{
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid rgba(255,255,255,0.22); border-top-color:rgba(255,255,255,0.75);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* The persistent player. Absolutely positioned in document coordinates so
+   it scrolls with the page for free; kept under the sticky mobile topbar
+   (z-index 50) and the timer widget (90). */
+#yt-host{
+  position:absolute; top:0; left:0; z-index:4;
+  border-radius:var(--radius-md); overflow:hidden;
+  background:#0B1416; box-shadow:var(--shadow-md);
+  will-change:transform;
+}
+#yt-host[hidden]{ display:none; }
+#yt-host iframe{ display:block; width:100%; height:100%; border:0; }
+
+.video-bar{
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; margin-top:10px; flex-wrap:wrap;
+}
+.video-hint{ font-size:11.5px; color:var(--ink-faint); }
+.video-note{
+  display:flex; gap:10px; align-items:flex-start;
+  margin-top:10px; padding:11px 13px; border-radius:var(--radius-sm);
+  background:var(--gold-pale); color:var(--ink);
+  border:1px solid color-mix(in srgb, var(--gold) 34%, transparent);
+  font-size:12.5px; line-height:1.5;
+}
+.video-note svg.ic{ width:16px; height:16px; color:var(--gold); margin-top:1px; }
+.video-note .mono{ font-size:11.5px; }
 .ep-row{ display:flex; align-items:center; gap:13px; padding:12px 16px; border-bottom:1px solid var(--border-soft); }
 .ep-row:last-child{ border-bottom:none; }
 .ep-num{ width:38px; height:38px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border-soft); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--ink-soft); flex-shrink:0; }
-.ep-row.watched .ep-num{ background:var(--celadon); color:#fff; border-color:var(--celadon); }
+.ep-row.watched .ep-num{ background:var(--celadon); color:var(--on-celadon); border-color:var(--celadon); }
 
 /* ============================================================
    WRITING, KEYPAD, RECORDER, MINIMAL PAIRS
@@ -616,7 +835,7 @@ textarea.text-input{ min-height:120px; resize:vertical; font-size:17px; line-hei
 .kp-key:active{ transform:translateY(2px); box-shadow:none; }
 .kp-key.wide{ max-width:96px; flex:2; font-family:var(--font-body); font-size:12.5px; }
 .kp-key.on{ background:var(--ink); color:var(--surface); border-color:var(--ink); }
-.rec-btn{ width:72px; height:72px; border-radius:50%; border:none; background:var(--seal); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow-md); transition:transform 0.15s ease; }
+.rec-btn{ width:72px; height:72px; border-radius:50%; border:none; background:var(--seal); color:var(--on-seal); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow-md); transition:transform 0.15s ease; }
 .rec-btn:hover{ transform:scale(1.05); }
 .rec-btn.recording{ animation:pulse 1.2s ease-in-out infinite; background:var(--seal-deep); }
 .rec-btn svg{ width:28px; height:28px; }
@@ -633,11 +852,20 @@ textarea.text-input{ min-height:120px; resize:vertical; font-size:17px; line-hei
 .switch::after{ content:''; position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:#fff; transition:transform 0.2s ease; }
 .switch.on{ background:var(--celadon); }
 .switch.on::after{ transform:translateX(14px); }
+.theme-seg{ display:flex; gap:2px; padding:2px; border-radius:var(--radius-full); background:var(--surface-3); border:1px solid var(--border-soft); }
+.theme-seg-btn{
+  width:26px; height:22px; border:none; background:transparent; color:var(--ink-faint);
+  border-radius:var(--radius-full); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.theme-seg-btn svg.ic{ width:13px; height:13px; }
+.theme-seg-btn:hover{ color:var(--ink-soft); }
+.theme-seg-btn.sel{ background:var(--surface); color:var(--celadon-deep); box-shadow:var(--shadow-sm); }
 .sentence-line{ display:flex; gap:10px; align-items:flex-start; padding:8px 0; }
 .sentence-line + .sentence-line{ border-top:1px dashed var(--border-soft); }
 .sentence-line.playing .passage-kr-line{ color:var(--celadon-deep); }
 .line-play{ width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; margin-top:4px; }
-.line-play:hover{ background:var(--celadon); color:#fff; border-color:var(--celadon); }
+.line-play:hover{ background:var(--celadon); color:var(--on-celadon); border-color:var(--celadon); }
 .line-play svg{ width:12px; height:12px; }
 .passage-kr-line{ font-family:var(--font-kr); font-size:19px; line-height:1.7; }
 
@@ -645,10 +873,19 @@ textarea.text-input{ min-height:120px; resize:vertical; font-size:17px; line-hei
    RESPONSIVE
    ============================================================ */
 @media (max-width:900px){
+  /* #app is a row on desktop (sidebar | main). On a phone the sidebar is
+     swapped for the topbar, so the axis has to turn as well; otherwise the
+     topbar and main sit SIDE BY SIDE, the topbar stretches to its full
+     scroll width and main collapses to 0. */
+  #app{ flex-direction:column; }
   .sidebar{ display:none; }
+  .main{ width:100%; }
   .topbar{
     display:flex; flex-direction:column; position:sticky; top:0; z-index:50;
-    background:var(--surface); border-bottom:1px solid var(--border-soft);
+    background:color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter:saturate(1.6) blur(12px);
+    -webkit-backdrop-filter:saturate(1.6) blur(12px);
+    border-bottom:1px solid var(--border-soft);
   }
   .topbar-top{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; }
   .topbar-pills{ display:flex; gap:6px; overflow-x:auto; padding:0 18px 12px; scrollbar-width:none; }
@@ -1262,7 +1499,10 @@ const ICONS = {
   eraser:'<path d="M18.5 12 9.3 21.2H4.8L3 19.4l11-11z"/><path d="M8 8 16 16"/><path d="M10.5 5.5 18.5 13.5 21.4 10.6a2 2 0 0 0 0-2.8L16.2 2.6a2 2 0 0 0-2.8 0Z"/>',
 };
 function icon(name, extraClass){
-  return '<svg class="'+(extraClass||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>';
+  /* class "ic" carries the baseline width/height. Without it an SVG
+     that only has a viewBox expands to the replaced-element default
+     and swallows the layout. */
+  return '<svg class="ic'+(extraClass?' '+extraClass:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(ICONS[name]||'')+'</svg>';
 }
 
 /* ============================================================
@@ -1281,7 +1521,7 @@ function defaultState(){
     irregulars:{ learned:[] },
     srs:{ items:{} },
     daily:{ date:null, xp:0, target:30, counters:{}, questsDone:[] },
-    settings:{ sound:true, slowAudio:false, inputMode:'builtin' },
+    settings:{ sound:true, slowAudio:false, inputMode:'builtin', theme:'auto' },
     timer:{ active:false, running:false, planId:null, segIdx:0, remaining:0, lastTick:null },
     history:{},
     videos:{ watched:[], custom:[] },
@@ -1709,7 +1949,7 @@ function mountTraceCanvas(){
   canvas.width = size; canvas.height = size;
   const ctx = canvas.getContext('2d');
   if(!ctx) return;
-  ctx.strokeStyle = '#356F63';
+  ctx.strokeStyle = cssVar('--celadon-deep', '#356F63');
   ctx.lineWidth = 5; ctx.lineCap='round'; ctx.lineJoin='round';
   let drawing = false;
   canvas.onpointerdown = (e)=>{
@@ -3566,7 +3806,69 @@ Object.assign(ICONS, {
   download:'<path d="M12 4v11M7 10.5l5 5 5-5M4.5 19.5h15"/>',
   upload:'<path d="M12 20V9M7 13.5l5-5 5 5M4.5 4.5h15"/>',
   trash:'<path d="M4.5 7h15M10 7V4.5h4V7M6.5 7l1 13h9l1-13"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>',
+  moon:'<path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8Z"/>',
+  contrast:'<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none"/>',
+  plus:'<path d="M12 5.5v13M5.5 12h13"/>',
+  minus:'<path d="M5.5 12h13"/>',
+  flag:'<path d="M5.5 21V4.2M5.5 5.2h11l-1.8 3.6 1.8 3.6h-11"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.3l3.4 2"/>',
 });
+
+/* ============================================================
+   V3 THEME
+   Three user choices (auto / light / dark) collapse to one
+   resolved attribute on <html>, so CSS only ever has to know
+   about data-theme="light" or data-theme="dark". Canvas drawing
+   reads live token values through cssVar() for the same reason.
+   ============================================================ */
+const THEME_CHOICES = [
+  { id:'auto',  label:'Auto',  icon:'contrast' },
+  { id:'light', label:'Light', icon:'sun' },
+  { id:'dark',  label:'Dark',  icon:'moon' },
+];
+function themeChoice(){
+  const t = state.settings && state.settings.theme;
+  return THEME_CHOICES.some(c=>c.id===t) ? t : 'auto';
+}
+function prefersDark(){
+  try{ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  catch(e){ return false; }
+}
+function resolvedTheme(){
+  const c = themeChoice();
+  return c==='auto' ? (prefersDark() ? 'dark' : 'light') : c;
+}
+function applyTheme(){
+  const t = resolvedTheme();
+  document.documentElement.setAttribute('data-theme', t);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t==='dark' ? '#0E1719' : '#EDF2EE');
+  /* Mirror the choice for the pre-paint script in <head>. */
+  try{ localStorage.setItem('hangeul-path-theme', themeChoice()); }catch(e){}
+}
+function setTheme(choice){
+  state.settings.theme = choice;
+  applyTheme();
+  persistState();
+  render();
+}
+/* Follow the OS only while the user is on "auto". */
+(function watchSystemTheme(){
+  try{
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = ()=>{ if(themeChoice()==='auto'){ applyTheme(); render(); } };
+    if(mq.addEventListener) mq.addEventListener('change', onChange);
+    else if(mq.addListener) mq.addListener(onChange);
+  }catch(e){ /* matchMedia unavailable */ }
+})();
+/* Live token lookup, for <canvas> which cannot use CSS variables. */
+function cssVar(name, fallback){
+  try{
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }catch(e){ return fallback; }
+}
 
 /* ============================================================
    V3 SETTINGS + AUDIO
@@ -3619,7 +3921,7 @@ function confetti(){
     const ctx = cv.getContext && cv.getContext('2d');
     if(!ctx) return;
     cv.width = window.innerWidth; cv.height = window.innerHeight;
-    const colors = ['#4C9186','#B08A3E','#C3402C','#16262A','#9CC8BA'];
+    const colors = [cssVar('--celadon','#4C9186'), cssVar('--gold','#B08A3E'), cssVar('--seal','#C3402C'), cssVar('--celadon-deep','#356F63'), cssVar('--gold-bright','#C9A353')];
     const parts = Array.from({length:130}, ()=>({ x:cv.width/2+(Math.random()-0.5)*220, y:cv.height*0.32, vx:(Math.random()-0.5)*13, vy:-Math.random()*13-4, r:Math.random()*7+4, c:colors[Math.floor(Math.random()*colors.length)], rot:Math.random()*6, vr:(Math.random()-0.5)*0.3 }));
     const start = performance.now();
     (function frame(t){
@@ -3845,6 +4147,94 @@ function ytIdFromUrl(url){
 function ytSearchUrl(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q); }
 function ytWatchUrl(id){ return 'https://www.youtube.com/watch?v='+id; }
 
+/* Opened straight from disk, the page's origin is "null". YouTube refuses
+   to serve an embed to a null origin, so the player would sit there blank
+   no matter what we do to the iframe. Detect it and say so plainly instead. */
+function isFileOrigin(){ return location.protocol === 'file:'; }
+
+function ytEmbedUrl(id){
+  const params = [
+    'rel=0',                 // keep related videos inside the same channel
+    'autoplay=1',            // allowed: mounting always follows a click
+    'playsinline=1',         // iOS must not hijack into fullscreen
+    'modestbranding=1',
+    'enablejsapi=1',
+  ];
+  /* origin= is required by the JS API, but it must be a real origin;
+     sending "null" from a file:// page makes YouTube reject the frame. */
+  if(!isFileOrigin()) params.push('origin=' + encodeURIComponent(location.origin));
+  return 'https://www.youtube-nocookie.com/embed/' + id + '?' + params.join('&');
+}
+
+/* ------------------------------------------------------------
+   PERSISTENT PLAYER HOST
+
+   render() rebuilds #app's innerHTML wholesale, so an <iframe>
+   written into a section template is destroyed and recreated on
+   every state change: marking the lesson watched, a timer tick
+   that ends a segment, adding a video. The player reloaded and
+   the lesson jumped back to 0:00, which is what made embedded
+   video feel broken.
+
+   Re-parenting an iframe reloads it too, so the player cannot
+   simply be moved back into place after a render. Instead it
+   lives in its own element outside #app, which render() never
+   touches, and is positioned over the slot the section leaves
+   for it.
+   ------------------------------------------------------------ */
+let ytHost = null;
+function ytHostEl(){
+  if(ytHost && ytHost.isConnected) return ytHost;
+  ytHost = document.createElement('div');
+  ytHost.id = 'yt-host';
+  ytHost.hidden = true;
+  document.body.appendChild(ytHost);
+  return ytHost;
+}
+function ytMount(id, title){
+  const host = ytHostEl();
+  if(host.dataset.vid === id) return;   // already this video: leave it playing
+  host.dataset.vid = id;
+  host.innerHTML =
+    '<iframe src="'+ytEmbedUrl(id)+'" title="'+escapeHtml(title||'Video')+'" '+
+    'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" '+
+    'allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+}
+function ytUnmount(){
+  if(!ytHost) return;
+  ytHost.dataset.vid = '';
+  ytHost.innerHTML = '';          // stops playback; no audio left running offscreen
+  ytHost.hidden = true;
+}
+function ytPosition(slot){
+  const host = ytHostEl();
+  const r = slot.getBoundingClientRect();
+  if(r.width < 1 || r.height < 1){ host.hidden = true; return; }
+  host.hidden = false;
+  host.style.width = r.width + 'px';
+  host.style.height = r.height + 'px';
+  host.style.transform = 'translate(' + (r.left + window.scrollX) + 'px,' + (r.top + window.scrollY) + 'px)';
+}
+/* Called after every render: mounts, moves or tears down the player to
+   match whatever the freshly drawn section is asking for. */
+function syncVideoHost(){
+  const slot = document.getElementById('yt-slot');
+  const want = slot && slot.getAttribute('data-vid');
+  if(!want){ ytUnmount(); return; }
+  ytMount(want, slot.getAttribute('data-title'));
+  ytPosition(slot);
+}
+(function watchVideoLayout(){
+  const resync = ()=>{ if(ytHost && ytHost.dataset.vid) syncVideoHost(); };
+  window.addEventListener('resize', resync);
+  /* The section fades in with a translate, so the slot's final position is
+     only known once that animation settles. */
+  document.addEventListener('animationend', e=>{
+    if(e.target && e.target.id === 'main-inner') resync();
+  }, true);
+  try{ new ResizeObserver(resync).observe(document.body); }catch(e){ /* older browser */ }
+})();
+
 /* ============================================================
    V3 BACKUP / RESTORE
    ============================================================ */
@@ -4007,15 +4397,22 @@ function renderSessionCard(){
    ============================================================ */
 function videoPlayer(id, title){
   const loaded = view.videoLoaded===id;
-  return '<div class="video-frame">'+
+  /* When loaded, the frame is left EMPTY on purpose: it is only a
+     placeholder that reserves the 16:9 box, and the persistent player
+     outside #app is positioned over it. See syncVideoHost(). */
+  return '<div class="video-frame'+(loaded?' is-playing':'')+'"'+
+      (loaded?' id="yt-slot" data-vid="'+id+'" data-title="'+escapeHtml(title||'Video')+'"':'')+'>'+
     (loaded
-      ? '<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?rel=0&autoplay=1&playsinline=1" title="'+escapeHtml(title||'Video')+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'
+      ? '<div class="video-loading"><span class="video-spinner"></span><span>Loading player\u2026</span></div>'
       : '<img class="video-thumb" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.display=\'none\'">'+
         '<button class="video-play" data-action="video-load" data-id="'+id+'" aria-label="Play video"><span>'+icon('play')+'</span></button>')+
   '</div>'+
-  '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">'+
-    '<span style="font-size:11.5px;color:var(--ink-faint);">If it will not play here, use Open on YouTube.</span>'+
-    '<a class="btn btn-ghost btn-sm" href="'+ytWatchUrl(id)+'" target="_blank" rel="noopener noreferrer">Open on YouTube \u2197</a>'+
+  (isFileOrigin()
+    ? '<div class="video-note">'+icon('question')+'<div><b>This page is open straight from a file.</b> YouTube will not play inside a page loaded with <span class="mono">file://</span>, so use Open on YouTube below \u2014 or serve the folder over <span class="mono">http://</span> (for example <span class="mono">npx http-server</span>) and the player will work in place.</div></div>'
+    : '')+
+  '<div class="video-bar">'+
+    '<span class="video-hint">'+(isFileOrigin()?'Playback is blocked for local files.':'Not playing? Some lessons only allow playback on YouTube itself.')+'</span>'+
+    '<a class="btn btn-outline btn-sm" href="'+ytWatchUrl(id)+'" target="_blank" rel="noopener noreferrer">Open on YouTube \u2197</a>'+
   '</div>';
 }
 function watchBtn(key){
@@ -4141,7 +4538,8 @@ function drawHwGuide(show){
   if(!show || !view.hw) return;
   const word = view.hw.word.kr, size = Math.min(170, Math.floor(g.width*0.92/Math.max(1,word.length)));
   ctx.font = '600 '+size+'px "Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Nanum Gothic",sans-serif';
-  ctx.fillStyle = view.hw.checked ? 'rgba(195,64,44,0.28)' : 'rgba(22,38,42,0.13)';
+  ctx.fillStyle = view.hw.checked ? 'rgba(195,64,44,0.28)'
+    : (resolvedTheme()==='dark' ? 'rgba(232,240,236,0.16)' : 'rgba(22,38,42,0.13)');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(word, g.width/2, g.height/2+size*0.04);
 }
@@ -4153,7 +4551,7 @@ function mountHandwriting(){
   view.hw.checked = false;
   drawHwGuide(view.hw.mode==='trace');
   const ctx = ink.getContext && ink.getContext('2d'); if(!ctx) return;
-  ctx.strokeStyle = '#16262A'; ctx.lineWidth = Math.max(6, size/34); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = cssVar('--ink', '#16262A'); ctx.lineWidth = Math.max(6, size/34); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   let drawing = false;
   const pos = e=>{ const r = ink.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
   ink.onpointerdown = e=>{ drawing = true; const [x,y] = pos(e); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+0.1,y+0.1); ctx.stroke(); try{ ink.setPointerCapture(e.pointerId); }catch(err){} };
@@ -4374,9 +4772,14 @@ function renderHeatmap(){
   return '<div class="heatmap">'+cells.join('')+'</div><div class="hm-legend">Less <span class="hm-cell"></span><span class="hm-cell hm-1"></span><span class="hm-cell hm-2"></span><span class="hm-cell hm-3"></span><span class="hm-cell hm-4"></span> More</div>';
 }
 function renderSettingsRows(){
-  const s = state.settings;
+  const s = state.settings, tc = themeChoice();
   return '<div class="settings-row"><span>Sound effects</span><button class="switch'+(s.sound?' on':'')+'" data-action="toggle-setting" data-key="sound" aria-label="Sound effects"></button></div>'+
-         '<div class="settings-row"><span>Slow audio</span><button class="switch'+(s.slowAudio?' on':'')+'" data-action="toggle-setting" data-key="slowAudio" aria-label="Slow audio"></button></div>';
+         '<div class="settings-row"><span>Slow audio</span><button class="switch'+(s.slowAudio?' on':'')+'" data-action="toggle-setting" data-key="slowAudio" aria-label="Slow audio"></button></div>'+
+         '<div class="settings-row"><span>Theme</span>'+
+           '<div class="theme-seg" role="group" aria-label="Theme">'+
+             THEME_CHOICES.map(c=>'<button class="theme-seg-btn'+(tc===c.id?' sel':'')+'" data-action="set-theme" data-theme="'+c.id+'" title="'+c.label+' theme" aria-label="'+c.label+' theme" aria-pressed="'+(tc===c.id)+'">'+icon(c.icon)+'</button>').join('')+
+           '</div>'+
+         '</div>';
 }
 function renderProgress(){
   const t = computeTotals(), lvl = levelFromXp(state.xp);
@@ -4477,6 +4880,7 @@ document.addEventListener('click', function(e){
 
     /* settings */
     case 'toggle-setting': { const k = el.getAttribute('data-key'); state.settings[k] = !state.settings[k]; persistState(); render(); if(k==='sound' && state.settings.sound) sfx('correct'); break; }
+    case 'set-theme': setTheme(el.getAttribute('data-theme')); break;
     case 'speak-slow': speak(el.getAttribute('data-text'), 0.62); break;
 
     /* videos */
@@ -4594,6 +4998,7 @@ function afterRender(){
   if(currentSection==='typing'){ mountTyping(); }
   if(currentSection==='writing'){ mountWriting(); }
   if(state.timer && state.timer.active) updateTimerDom();
+  syncVideoHost();
 }
 
 /* ============================================================
@@ -4602,6 +5007,7 @@ function afterRender(){
 (async function init(){
   primeVoices();
   await loadState();
+  applyTheme();
   touchStreak();
   ensureDailyGoal();
   if(state.timer && state.timer.active){ state.timer.running = false; state.timer.lastTick = Date.now(); }
